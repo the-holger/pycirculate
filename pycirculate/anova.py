@@ -1,5 +1,6 @@
 from bluepy import btle
 import datetime
+import six
 
 class AnovaDelegate(btle.DefaultDelegate):
     """
@@ -59,7 +60,10 @@ class AnovaController(object):
 
     def _send_command(self, command):
         command = "{0}\r".format(command)
-        self.characteristic.write(command)
+        if six.PY2:
+            self.characteristic.write(command)
+        else:
+            self.characteristic.write(bytes(command, 'UTF-8'))
 
     def _read(self):
         #self.characteristic.read()
@@ -71,7 +75,9 @@ class AnovaController(object):
     def send_command_async(self, command):
         self._send_command(command)
         _, output = self._read()
-        return output.strip()
+        if six.PY2:
+            return output.strip()
+        return output.strip().decode('UTF-8')
 
     ##### Temperature commands
 
